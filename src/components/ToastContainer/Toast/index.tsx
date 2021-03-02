@@ -29,7 +29,7 @@ const Toast: React.FC<ToastProps> = ({ message, style }) => {
 
   return (
     <Container
-      hasdescription={String(!!message.description)}
+      hasdescription={!!message.description}
       type={message.type}
       style={style}
       role="alert"

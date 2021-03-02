@@ -54,7 +54,7 @@ export const Container = styled(animated.div)<ToastProps>`
     border: 0;
   }
   ${props =>
-    !props.hasDescription &&
+    !props.hasdescription &&
     css`
       align-items: center;
       svg {

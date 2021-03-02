@@ -44,6 +44,8 @@ export const Container = styled.div`
 export const MainContent = styled.div`
   display: flex;
   flex: 1;
+  max-width: 600px;
+  min-width: 300px;
   flex-wrap: wrap;
   word-wrap: break-word;
   padding: 40px 0px;

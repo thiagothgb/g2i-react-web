@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-mock/localstorage": "^0.1.2",
     "axios": "^0.19.2",
     "history": "^5.0.0",
     "lodash": "^4.17.21",

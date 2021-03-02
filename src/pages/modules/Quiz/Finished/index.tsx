@@ -22,11 +22,11 @@ const Finished: React.FC = () => {
   }
 
   return (
-    <Container>
+    <Container data-testid="finish-main-container">
       <h1 aria-hidden="false" aria-label="You Score">
         You scored
       </h1>
-      <h1>{`${correctAnswerCount}/${total}`}</h1>
+      <h1 data-testid="finish-answered">{`${correctAnswerCount} of ${total}`}</h1>
 
       <List>
         {questions.map(question => {

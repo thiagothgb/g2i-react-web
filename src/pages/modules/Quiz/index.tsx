@@ -85,7 +85,7 @@ const Quiz: React.FC = () => {
 
   if (loading) {
     return (
-      <Container>
+      <Container data-testid="quiz-header-loading">
         <Loading />
       </Container>
     );
@@ -93,8 +93,8 @@ const Quiz: React.FC = () => {
 
   if (error) {
     return (
-      <Container>
-        <Error message={errorMessage} />
+      <Container data-testid="quiz-header-error">
+        <Error message={errorMessage} data-testid="quiz-header-error-message" />
       </Container>
     );
   }
@@ -104,7 +104,7 @@ const Quiz: React.FC = () => {
   }
 
   return (
-    <Container data-testid="quiz-header">
+    <Container data-testid="quiz-header-main">
       <header>
         <button
           lang="en"

@@ -74,9 +74,11 @@ const QuestionProvider: React.FC = ({ children }) => {
       setError(false);
       setErrorMessage(undefined);
 
-      const { data } = await api.get<AxiosResponse>('');
+      const { data } = await api.get<AxiosResponse>(
+        'api.php?amount=10&difficulty=hard&type=boolean',
+      );
 
-      if (data.results.length <= 0) {
+      if (data.results && data.results.length <= 0) {
         setError(true);
         setErrorMessage(
           'No questions returned from api. It is not possible run the quiz.',
@@ -84,13 +86,15 @@ const QuestionProvider: React.FC = ({ children }) => {
         return;
       }
 
-      const questionsFormatted = data.results.map(question => ({
-        ...question,
-        id: uuid(),
-        question: _.unescape(question.question),
-        answered_correct: false,
-        answered_wrong: false,
-      }));
+      const questionsFormatted = data.results
+        ? data.results.map(question => ({
+            ...question,
+            id: uuid(),
+            question: _.unescape(question.question),
+            answered_correct: false,
+            answered_wrong: false,
+          }))
+        : [];
 
       localStorage.setItem(
         '@G2I:questions',
@@ -99,7 +103,7 @@ const QuestionProvider: React.FC = ({ children }) => {
 
       localStorage.setItem(
         '@G2I:actualQuestion',
-        JSON.stringify(questionsFormatted[0]),
+        JSON.stringify(questionsFormatted[0] || ''),
       );
 
       setQuestions(questionsFormatted);

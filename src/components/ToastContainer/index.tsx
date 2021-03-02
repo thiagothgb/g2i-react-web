@@ -30,11 +30,15 @@ const ToastContainer: React.FC<ToastMessageProps> = ({ messages }) => {
 
   return (
     <Container>
-      {messagesWithTransitions.map(({ item, key, props }) => {
+      {messagesWithTransitions.map(({ item, key, props }, index) => {
         return (
-          <>
-            <Toast key={key} message={item} style={props} />
-          </>
+          <React.Fragment key={`${key}-${String(index)}`}>
+            <Toast
+              key={`${key}-${String(index)}`}
+              message={item}
+              style={props}
+            />
+          </React.Fragment>
         );
       })}
     </Container>

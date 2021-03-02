@@ -2,10 +2,9 @@ import React from 'react';
 import { LocalStorageMock } from '@react-mock/localstorage';
 import { act, render, screen, fireEvent } from '@testing-library/react';
 import AxiosMock from 'axios-mock-adapter';
-import { QuestionContext, QuestionContextData } from '../../hooks/quiz';
-import Quiz from '../../pages/modules/Quiz';
 import api from '../../services/api';
-import { ToastContext, ToastContextData } from '../../hooks/toast';
+
+import App from '../../App';
 
 const apiMock = new AxiosMock(api);
 
@@ -18,27 +17,7 @@ describe('Quiz', () => {
     apiMock.restore();
   });
 
-  it('should be able to quiz', async () => {
-    const providerProps: QuestionContextData = {
-      clearCache: jest.fn(),
-      correctAnswerCount: 0,
-      error: false,
-      finished: false,
-      getNextQuestion: jest.fn(),
-      loadQuestions: jest.fn(),
-      loading: false,
-      questions: [],
-      updateQuestion: jest.fn(),
-      wrongAnswerCount: 0,
-      actualQuestion: undefined,
-      errorMessage: undefined,
-    };
-
-    const toastProps: ToastContextData = {
-      addToast: jest.fn(),
-      removeToast: jest.fn(),
-    };
-
+  it('should be able run all path quiz', async () => {
     const quizList = [
       {
         category: 'Vehicles',
@@ -59,27 +38,31 @@ describe('Quiz', () => {
         incorrect_answers: ['True'],
       },
     ];
-
-    apiMock
-      .onGet(
-        'https://opentdb.com/api.php?amount=10&difficulty=hard&type=boolean',
-      )
-      .reply(200, { results: quizList });
+    apiMock.onGet('api.php?amount=10&difficulty=hard&type=boolean').reply(200, {
+      results: quizList,
+    });
 
     render(
       <LocalStorageMock>
-        <ToastContext.Provider value={toastProps}>
-          <QuestionContext.Provider value={providerProps}>
-            <Quiz />
-          </QuestionContext.Provider>
-        </ToastContext.Provider>
+        <App />
       </LocalStorageMock>,
     );
 
+    expect(screen.getByTestId('start-quiz')).toBeTruthy();
+
+    await act(async () => {
+      const leftClick = { button: 0 };
+      fireEvent.click(screen.getByTestId('start-quiz', leftClick));
+    });
+
     expect(screen.getByTestId('quiz-header-main')).toBeTruthy();
+
     expect(screen.findByText(quizList[0].question)).toBeTruthy();
+
     expect(screen.getByTestId('quiz-next-button')).toBeTruthy();
+
     expect(screen.getByTestId('quiz-true-button')).toBeTruthy();
+
     expect(screen.getByTestId('quiz-false-button')).toBeTruthy();
 
     act(() => {
@@ -94,6 +77,23 @@ describe('Quiz', () => {
       fireEvent.click(screen.getByTestId('quiz-true-button'));
     });
 
+    act(() => {
+      fireEvent.click(screen.getByTestId('quiz-next-button'));
+    });
+
     expect(screen.findByText(quizList[1].question)).toBeTruthy();
+
+    act(() => {
+      fireEvent.click(screen.getByTestId('quiz-true-button'));
+    });
+
+    act(() => {
+      fireEvent.click(screen.getByTestId('quiz-next-button'));
+    });
+
+    expect(screen.getByTestId('finish-main-container')).toBeTruthy();
+    expect(screen.getByTestId('finish-answered').textContent).toBe(`1 of 2`);
+
+    expect(screen.findByText('PLAY AGAIN?')).toBeTruthy();
   });
 });

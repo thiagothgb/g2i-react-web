@@ -54,7 +54,7 @@ const Quiz: React.FC = () => {
   const handleNextQuestion = useCallback(() => {
     if (answer === undefined) {
       addToast({
-        title: 'Selecione uma resposta antes de prosseguir.',
+        title: 'Select on question before go next.',
         type: 'error',
       });
     } else if (actualQuestion) {
@@ -79,6 +79,8 @@ const Quiz: React.FC = () => {
 
       return index + 1;
     }
+
+    return 0;
   }, [actualQuestion, questions]);
 
   if (loading) {
@@ -102,36 +104,49 @@ const Quiz: React.FC = () => {
   }
 
   return (
-    <Container>
+    <Container data-testid="quiz-header">
       <header>
-        <button type="button" onClick={handleGiveUp}>
+        <button
+          lang="en"
+          type="button"
+          aria-label="Give up"
+          onClick={handleGiveUp}
+        >
           <CgCloseR />
         </button>
       </header>
-      <h1>{actualQuestion?.category}</h1>
-      <MainContent>
-        <text>{actualQuestion?.question}</text>
+      <h1 lang="en">{actualQuestion?.category}</h1>
+      <MainContent data-testid="quiz-main-container">
+        <p lang="en">{actualQuestion?.question}</p>
       </MainContent>
-      <div>{`${actual} of ${total}`}</div>
+      <div lang="en">{`${actual} of ${total}`}</div>
       <ActionsContainer>
         <ActionButton
           selected={answer === true}
+          data-testid="quiz-true-button"
           onClick={() => handleOnSelectAnswer(true)}
         >
           <FiThumbsUp />
 
-          <b>TRUE</b>
+          <b lang="en">TRUE</b>
         </ActionButton>
         <ActionButton
+          data-testid="quiz-false-button"
           selected={answer === false}
           onClick={() => handleOnSelectAnswer(false)}
         >
           <FiThumbsDown />
-          <b>FALSE</b>
+          <b lang="en">FALSE</b>
         </ActionButton>
       </ActionsContainer>
 
-      <button type="button" onClick={handleNextQuestion}>
+      <button
+        lang="en"
+        aria-labelledby="Go to the next question"
+        type="button"
+        data-testid="quiz-next-button"
+        onClick={handleNextQuestion}
+      >
         Next
       </button>
     </Container>

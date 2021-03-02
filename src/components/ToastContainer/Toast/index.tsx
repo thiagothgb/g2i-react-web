@@ -32,6 +32,7 @@ const Toast: React.FC<ToastProps> = ({ message, style }) => {
       hasDescription={!!message.description}
       type={message.type}
       style={style}
+      role="alert"
     >
       {icons[message.type || 'info']}
 

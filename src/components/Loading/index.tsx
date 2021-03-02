@@ -4,7 +4,7 @@ import { Container } from './styles';
 
 const Loading: React.FC = () => {
   return (
-    <Container>
+    <Container data-testid="loading-component">
       <VscLoading />
     </Container>
   );

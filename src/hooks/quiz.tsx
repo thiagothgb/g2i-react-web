@@ -10,13 +10,14 @@ export interface AxiosErrorResponse {
   message: string;
 }
 
-interface Questions {
+export interface Questions {
   id: string;
   category: string;
   type: string;
   difficulty: string;
   question: string;
   correct_answer: string;
+  finished: false;
   incorrect_answer: string[];
   answered_wrong: boolean;
   answered_correct: boolean;
@@ -26,7 +27,7 @@ interface AxiosResponse {
   results: Questions[];
 }
 
-interface QuestionContextData {
+export interface QuestionContextData {
   questions: Questions[];
   correctAnswerCount: number;
   wrongAnswerCount: number;
@@ -41,7 +42,7 @@ interface QuestionContextData {
   clearCache(): void;
 }
 
-const QuestionContext = createContext<QuestionContextData>(
+export const QuestionContext = createContext<QuestionContextData>(
   {} as QuestionContextData,
 );
 

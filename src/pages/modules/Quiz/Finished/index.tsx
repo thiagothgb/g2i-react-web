@@ -23,7 +23,9 @@ const Finished: React.FC = () => {
 
   return (
     <Container>
-      <h1>You scored</h1>
+      <h1 aria-hidden="false" aria-label="You Score">
+        You scored
+      </h1>
       <h1>{`${correctAnswerCount}/${total}`}</h1>
 
       <List>

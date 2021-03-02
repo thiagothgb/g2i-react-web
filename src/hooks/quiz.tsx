@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import React, { createContext, useCallback, useState, useContext } from 'react';
 import { AxiosError } from 'axios';
-import { useHistory } from 'react-router-dom';
 import { uuid } from 'uuidv4';
+import _ from 'lodash';
 import api from '../services/api';
-import { useToast } from './toast';
 
 export interface AxiosErrorResponse {
   status: 'error';
@@ -16,7 +15,7 @@ interface Questions {
   category: string;
   type: string;
   difficulty: string;
-  questions: string;
+  question: string;
   correct_answer: string;
   incorrect_answer: string[];
   answered_wrong: boolean;
@@ -36,9 +35,9 @@ interface QuestionContextData {
   finished: boolean;
   errorMessage?: string;
   actualQuestion?: Questions;
-  loadQuestions(): Promise<Questions>;
-  getNextQuestion(id: string): Promise<Questions | undefined>;
-  updateQuestion(id: string, correct: boolean): Promise<void>;
+  loadQuestions(): Promise<void>;
+  getNextQuestion(id: string): void;
+  updateQuestion(id: string, correct: boolean): void;
   clearCache(): void;
 }
 
@@ -46,9 +45,7 @@ const QuestionContext = createContext<QuestionContextData>(
   {} as QuestionContextData,
 );
 
-const AuthProvider: React.FC = ({ children }) => {
-  const { addToast } = useToast();
-  const history = useHistory();
+const QuestionProvider: React.FC = ({ children }) => {
   const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
   const [wrongAnswerCount, setWrongAnswerCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -70,15 +67,13 @@ const AuthProvider: React.FC = ({ children }) => {
     return [];
   });
 
-  const loadQuestions = useCallback(async () => {
+  const loadQuestions = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       setError(false);
       setErrorMessage(undefined);
 
-      const { data } = await api.post<AxiosResponse>(
-        'https://opentdb.com/api.php?amount=10&difficulty=hard&type=boolean',
-      );
+      const { data } = await api.get<AxiosResponse>('');
 
       if (data.results.length <= 0) {
         setError(true);
@@ -91,6 +86,7 @@ const AuthProvider: React.FC = ({ children }) => {
       const questionsFormatted = data.results.map(question => ({
         ...question,
         id: uuid(),
+        question: _.unescape(question.question),
         answered_correct: false,
         answered_wrong: false,
       }));
@@ -107,6 +103,7 @@ const AuthProvider: React.FC = ({ children }) => {
 
       setQuestions(questionsFormatted);
       setActualQuestion(questionsFormatted[0]);
+      setFinished(false);
     } catch (err) {
       if ((err as AxiosError).isAxiosError) {
         if (!err.message) {
@@ -125,30 +122,114 @@ const AuthProvider: React.FC = ({ children }) => {
     }
   }, []);
 
-  const signOut = useCallback(() => {
-    localStorage.removeItem('@FarmFish:token');
-    localStorage.removeItem('@FarmFish:user');
+  const getNextQuestion = useCallback(
+    (id: string): void => {
+      const actualIndex = questions.findIndex(question => question.id === id);
 
-    api.defaults.headers.authorization = null;
+      if (actualIndex < 0) {
+        setError(true);
+        setErrorMessage('Question is not more available. Refresh the test.');
+      } else if (actualIndex + 1 > questions.length - 1) {
+        setFinished(true);
+      } else {
+        setActualQuestion(questions[actualIndex + 1]);
 
-    setData({} as AuthState);
+        localStorage.setItem(
+          '@G2I:actualQuestion',
+          JSON.stringify(questions[actualIndex + 1]),
+        );
+      }
+    },
+    [questions],
+  );
+
+  const updateQuestion = useCallback(
+    (id: string, correct: boolean): void => {
+      const actualIndex = questions.findIndex(question => question.id === id);
+
+      if (actualIndex < 0) {
+        setError(true);
+        setErrorMessage('Question is not more available. Refresh the test.');
+      } else if (correct) {
+        setCorrectAnswerCount(current => current + 1);
+        const updatedQuestions = questions.map(question => {
+          if (question.id === id) {
+            return {
+              ...question,
+              answered_correct: true,
+              answered_wrong: false,
+            };
+          }
+
+          return question;
+        });
+        setQuestions(updatedQuestions);
+        localStorage.setItem(
+          '@G2I:questions',
+          JSON.stringify(updatedQuestions),
+        );
+      } else {
+        setWrongAnswerCount(current => current - 1);
+        const updatedQuestions = questions.map(question => {
+          if (question.id === id) {
+            return {
+              ...question,
+              answered_correct: false,
+              answered_wrong: true,
+            };
+          }
+
+          return question;
+        });
+        setQuestions(updatedQuestions);
+        localStorage.setItem(
+          '@G2I:questions',
+          JSON.stringify(updatedQuestions),
+        );
+      }
+    },
+    [questions],
+  );
+
+  const clearCache = useCallback(() => {
+    localStorage.removeItem('@G2I:questions');
+    localStorage.removeItem('@G2I:actualQuestion');
+
+    setQuestions([]);
+    setActualQuestion(undefined);
+    setFinished(false);
   }, []);
 
   return (
-    <QuestionContext.Provider value={{ user: data.user, signIn, signOut }}>
+    <QuestionContext.Provider
+      value={{
+        questions,
+        finished,
+        correctAnswerCount,
+        wrongAnswerCount,
+        loading,
+        error,
+        errorMessage,
+        actualQuestion,
+        loadQuestions,
+        getNextQuestion,
+        updateQuestion,
+        clearCache,
+      }}
+    >
       {children}
     </QuestionContext.Provider>
   );
 };
 
-function useAuth(): QuestionContextData {
+function useQuestion(): QuestionContextData {
   const context = useContext(QuestionContext);
 
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useQuestion must be used within an QuestionProvider');
   }
 
   return context;
 }
 
-export { AuthProvider, useAuth };
+export { QuestionProvider, useQuestion };
